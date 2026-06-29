@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PPT-PQC 2027 — Privacy-Preserving Techniques & Post-Quantum Cryptography</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Tokens ─────────────────────────────────────────────────────── */
+    :root {
+      --midnight:    #0a0e1a;
+      --deep-navy:   #0f1729;
+      --panel:       #141c2e;
+      --panel-light: #1a2340;
+      --border:      #1e2d4a;
+      --quantum:     #00d4ff;   /* signature cyan */
+      --quantum-dim: rgba(0,212,255,0.12);
+      --privacy:     #7c4dff;   /* violet accent */
+      --privacy-dim: rgba(124,77,255,0.12);
+      --warn:        #ff6b35;
+      --text:        #e8edf5;
+      --muted:       #7a8ba8;
+      --faint:       #3d5070;
+
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body:    'Crimson Pro', serif;
+      --font-mono:    'Space Mono', monospace;
+
+      --radius: 4px;
+      --section-gap: 6rem;
+    }
+
+    /* ─── Reset ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--midnight);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1.125rem;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    a { color: var(--quantum); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { max-width: 100%; display: block; }
+
+    /* ─── Utility ─────────────────────────────────────────────────────── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem; }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--quantum);
+      display: inline-block;
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2rem;
+      line-height: 1.2;
+    }
+    .divider {
+      width: 48px; height: 2px;
+      background: linear-gradient(90deg, var(--quantum), var(--privacy));
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── NAV ────────────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,14,26,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 0;
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1080px; margin: 0 auto; padding: 0 1.5rem;
+    }
+    .nav-brand {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--quantum);
+      letter-spacing: 0.05em;
+    }
+    .nav-links {
+      display: flex; gap: 2rem; list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+
+    /* ─── HERO ───────────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: flex; align-items: center;
+      overflow: hidden;
+      padding: 5rem 0 4rem;
+    }
+
+    /* Signature element: quantum circuit grid background */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -20%; left: 60%;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(124,77,255,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* Animated quantum dots */
+    .q-dots {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+    }
+    .q-dot {
+      position: absolute;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--quantum);
+      opacity: 0;
+      animation: pulse-dot 4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 0; transform: scale(1); }
+      50%      { opacity: 0.6; transform: scale(1.8); }
+    }
+
+    .hero-content { position: relative; z-index: 2; max-width: 780px; }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--quantum);
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 32px; height: 1px;
+      background: var(--quantum);
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 5.5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .hero-title em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--quantum) 0%, var(--privacy) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-acronym {
+      font-family: var(--font-mono);
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.08em;
+    }
+    .hero-sub {
+      font-size: 1.2rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin-bottom: 2.5rem;
+      font-style: italic;
+    }
+    .hero-meta {
+      display: flex; flex-wrap: wrap; gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .hero-meta-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .hero-meta-item .icon {
+      color: var(--quantum);
+      font-size: 1rem;
+    }
+    .badge {
+      display: inline-flex; align-items: center;
+      background: var(--quantum-dim);
+      border: 1px solid rgba(0,212,255,0.25);
+      color: var(--quantum);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      padding: 0.3rem 0.8rem;
+      border-radius: 2px;
+    }
+    .hero-cta {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.75rem 1.75rem;
+      border-radius: var(--radius);
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      letter-spacing: 0.02em;
+    }
+    .btn-primary {
+      background: var(--quantum);
+      color: var(--midnight);
+    }
+    .btn-primary:hover {
+      background: #33dcff;
+      text-decoration: none;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 24px rgba(0,212,255,0.3);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      border-color: var(--quantum);
+      color: var(--quantum);
+      text-decoration: none;
+    }
+
+    /* ─── IMPORTANT DATES ───────────────────────────────────────────── */
+    .dates-section {
+      padding: var(--section-gap) 0;
+      background: var(--deep-navy);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .dates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .date-card {
+      background: var(--panel);
+      padding: 1.75rem 1.5rem;
+      transition: background 0.2s;
+    }
+    .date-card:hover { background: var(--panel-light); }
+    .date-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .date-value {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .date-extended {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--warn);
+    }
+    .date-card.highlight .date-value { color: var(--quantum); }
+
+    /* ─── ABOUT ───────────────────────────────────────────────────────── */
+    .about-section { padding: var(--section-gap) 0; }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    .about-text p { color: var(--muted); margin-bottom: 1rem; }
+    .about-text p strong { color: var(--text); }
+    .topics-list {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .topics-list li {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      color: var(--muted);
+      padding: 0.6rem 0.9rem;
+      border-left: 2px solid var(--border);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .topics-list li:hover {
+      border-color: var(--quantum);
+      color: var(--text);
+    }
+    .topics-list li::before {
+      content: '›';
+      color: var(--quantum);
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+    }
+
+    /* ─── ORGANIZERS ─────────────────────────────────────────────────── */
+    .organizers-section {
+      padding: var(--section-gap) 0;
+      background: var(--deep-navy);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .organizers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+    .organizer-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .organizer-card:hover {
+      border-color: rgba(0,212,255,0.3);
+      transform: translateY(-2px);
+    }
+    .org-name {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .org-role {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--quantum);
+      margin-bottom: 0.5rem;
+    }
+    .org-affiliation {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* ─── KEYNOTES ───────────────────────────────────────────────────── */
+    .keynotes-section { padding: var(--section-gap) 0; }
+    .keynote-cards { display: flex; flex-direction: column; gap: 1rem; }
+    .keynote-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      display: flex; align-items: flex-start; gap: 1.5rem;
+    }
+    .keynote-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--quantum-dim), var(--privacy-dim));
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--quantum);
+      flex-shrink: 0;
+    }
+    .keynote-info .kn-name {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .keynote-info .kn-affil {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .keynote-info .kn-note {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--warn);
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── PROGRAM ────────────────────────────────────────────────────── */
+    .program-section {
+      padding: var(--section-gap) 0;
+      background: var(--deep-navy);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .schedule-list { display: flex; flex-direction: column; gap: 0; }
+    .schedule-item {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 1.5rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+    .schedule-item:last-child { border-bottom: none; }
+    .sch-time {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--quantum);
+      padding-top: 0.15rem;
+    }
+    .sch-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+    .sch-desc {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* ─── TPC ────────────────────────────────────────────────────────── */
+    .tpc-section { padding: var(--section-gap) 0; }
+    .tpc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.75rem;
+    }
+    .tpc-item {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 1.1rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem;
+      transition: border-color 0.15s;
+    }
+    .tpc-item:hover { border-color: var(--faint); }
+    .tpc-name {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .tpc-inst {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .tpc-flag {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* ─── SUBMISSION ─────────────────────────────────────────────────── */
+    .submission-section {
+      padding: var(--section-gap) 0;
+      background: var(--deep-navy);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .submission-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+    .info-block { margin-bottom: 1.5rem; }
+    .info-block h3 {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .info-block p, .info-block li {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .info-block ul { padding-left: 1.25rem; }
+    .info-block li { margin-bottom: 0.25rem; }
+    .submit-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    }
+    .submit-box p {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    /* ─── FOOTER ─────────────────────────────────────────────────────── */
+    footer {
+      background: var(--midnight);
+      border-top: 1px solid var(--border);
+      padding: 3rem 0;
+      text-align: center;
+    }
+    footer .footer-brand {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--quantum);
+      margin-bottom: 0.5rem;
+    }
+    footer .footer-sub {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    footer .footer-links {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem;
+      list-style: none; margin-bottom: 2rem;
+    }
+    footer .footer-links a {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    footer .footer-links a:hover { color: var(--text); text-decoration: none; }
+    footer .copyright {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--faint);
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      :root { --section-gap: 3.5rem; }
+      .nav-links { display: none; }
+      .about-grid,
+      .submission-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .schedule-item { grid-template-columns: 1fr; gap: 0.25rem; }
+      .sch-time { color: var(--muted); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .q-dot { animation: none; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ───────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">PPT-PQC 2027</div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#dates">Dates</a></li>
+      <li><a href="#organizers">Organizers</a></li>
+      <li><a href="#keynotes">Keynotes</a></li>
+      <li><a href="#program">Program</a></li>
+      <li><a href="#tpc">Committee</a></li>
+      <li><a href="#submission">Submit</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ─── HERO ───────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="q-dots" id="qdots"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-eyebrow">Co-located with IEEE PerCom 2027 &nbsp;·&nbsp; Goa, India</div>
+      <h1 class="hero-title">
+        International Workshop on<br>
+        <em>Privacy-Preserving Techniques<br>
+        &amp; Post-Quantum Cryptography</em><br>
+        for Pervasive Systems
+      </h1>
+      <div class="hero-acronym">PPT-PQC 2027</div>
+      <p class="hero-sub">
+        Bridging quantum-resilient cryptography and privacy-enhancing technologies for the next generation of pervasive computing.
+      </p>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="icon">📅</span>
+          <span>March 2027 &nbsp;|&nbsp; Goa, India</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="icon">📄</span>
+          <span>Submission Deadline: Nov 17, 2026</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="badge">Full-Day In-Person Workshop</span>
+        </div>
+      </div>
+      <div class="hero-cta">
+        <a href="#submission" class="btn btn-primary">Submit Your Paper</a>
+        <a href="#about" class="btn btn-outline">Learn More</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DATES ─────────────────────────────────────────────────────────── -->
+<section class="dates-section" id="dates">
+  <div class="container">
+    <div class="tag">Important Dates</div>
+    <h2 class="section-title">Key Deadlines</h2>
+    <div class="dates-grid">
+      <div class="date-card">
+        <div class="date-label">Paper Submission</div>
+        <div class="date-value">November 17, 2026</div>
+        <div class="date-extended">Extended: November 25, 2026</div>
+      </div>
+      <div class="date-card">
+        <div class="date-label">Author Notification</div>
+        <div class="date-value">January 8, 2027</div>
+      </div>
+      <div class="date-card">
+        <div class="date-label">Camera-Ready</div>
+        <div class="date-value">February 8, 2027</div>
+      </div>
+      <div class="date-card highlight">
+        <div class="date-label">Workshop Day</div>
+        <div class="date-value">March 2027</div>
+        <div class="date-extended">Co-located with PerCom 2027</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── ABOUT ─────────────────────────────────────────────────────────── -->
+<section class="about-section" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-text">
+        <div class="tag">About the Workshop</div>
+        <div class="divider"></div>
+        <h2 class="section-title">Two Converging Challenges in Pervasive Computing</h2>
+        <p>
+          Pervasive computing environments — spanning IoT, wearables, smart homes, connected vehicles, edge/fog systems, and ambient intelligence platforms — continuously collect, process, and transmit <strong>sensitive personal and contextual data</strong>.
+        </p>
+        <p>
+          This raises two converging challenges: <strong>privacy preservation</strong> under severe resource constraints, and <strong>cryptographic agility against quantum threats</strong>. NIST's PQC standardization (ML-KEM, ML-DSA, SPHINCS+) provides quantum-resistant primitives, but their integration into constrained devices remains largely open.
+        </p>
+        <p>
+          PPT-PQC 2027 is the first PerCom-affiliated workshop to explicitly bridge these two areas through a <strong>pervasive-systems lens</strong> — addressing how systems can be simultaneously privacy-preserving and quantum-resilient without sacrificing usability, scalability, or energy efficiency.
+        </p>
+      </div>
+      <div>
+        <div class="tag">Topics of Interest</div>
+        <div class="divider"></div>
+        <ul class="topics-list">
+          <li>Quantum-resilient cryptography for constrained devices</li>
+          <li>Post-quantum cryptographic engineering (ML-KEM, ML-DSA, SPHINCS+)</li>
+          <li>Differential privacy and federated learning on edge/IoT</li>
+          <li>Secure multiparty computation &amp; homomorphic encryption</li>
+          <li>PQC/quantum security for wireless and mobile networks</li>
+          <li>Lightweight cryptography for embedded and pervasive systems</li>
+          <li>Hardware security for quantum-resilient devices</li>
+          <li>Privacy-enhancing technologies (PETs) for pervasive environments</li>
+          <li>PQC integration in smart grids, healthcare, and autonomous vehicles</li>
+          <li>Trustworthy AI intersecting PQC and quantum security</li>
+          <li>Anonymization and de-identification for ambient intelligence</li>
+          <li>Related applications and real-world deployment case studies</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── ORGANIZERS ────────────────────────────────────────────────────── -->
+<section class="organizers-section" id="organizers">
+  <div class="container">
+    <div class="tag">Organizing Committee</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Workshop Organizers</h2>
+    <div class="organizers-grid">
+
+      <div class="organizer-card">
+        <div class="org-role">General Co-Chair</div>
+        <div class="org-name">Dr. Soumyadev Maity</div>
+        <div class="org-affiliation">
+          Assistant Professor, Dept. of Information Technology<br>
+          Indian Institute of Information Technology Allahabad (IIITA), India<br>
+          <em style="color:var(--faint);font-size:0.78rem;">FOG-CPS Security Lab &amp; NSC Lab</em>
+        </div>
+      </div>
+
+      <div class="organizer-card">
+        <div class="org-role">General Co-Chair</div>
+        <div class="org-name">Prof. Neetesh Saxena</div>
+        <div class="org-affiliation">
+          Reader, School of Computer Science &amp; Informatics<br>
+          Cardiff University, UK
+        </div>
+      </div>
+
+      <div class="organizer-card">
+        <div class="org-role">General Co-Chair</div>
+        <div class="org-name">Prof. Kim-Kwang Raymond Choo</div>
+        <div class="org-affiliation">
+          Cloud Technology Endowed Professor<br>
+          University of Texas at San Antonio, USA
+        </div>
+      </div>
+
+      <div class="organizer-card">
+        <div class="org-role">Co-Chair &amp; Publicity Chair</div>
+        <div class="org-name">Dr. Kumar Prateek</div>
+        <div class="org-affiliation">
+          Assistant Professor, Dept. of Information Technology<br>
+          Dr. B. R. Ambedkar NIT Jalandhar, India
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── KEYNOTES ──────────────────────────────────────────────────────── -->
+<section class="keynotes-section" id="keynotes">
+  <div class="container">
+    <div class="tag">Invited Speakers</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Keynote Speakers</h2>
+    <div class="keynote-cards">
+      <div class="keynote-card">
+        <div class="keynote-avatar">SR</div>
+        <div class="keynote-info">
+          <div class="kn-name">Dr. Sushmita Ruj</div>
+          <div class="kn-affil">University of New South Wales (UNSW), Sydney, Australia</div>
+          <div class="kn-note">Keynote on PQC Migration — Confirmation Pending</div>
+        </div>
+      </div>
+      <div class="keynote-card">
+        <div class="keynote-avatar">AM</div>
+        <div class="keynote-info">
+          <div class="kn-name">Dr. Arpita Maitra</div>
+          <div class="kn-affil">TCG CREST, Kolkata, India</div>
+          <div class="kn-note">Keynote on Privacy-Preserving Pervasive Computing — Confirmation Pending</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROGRAM ───────────────────────────────────────────────────────── -->
+<section class="program-section" id="program">
+  <div class="container">
+    <div class="tag">Workshop Program</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Tentative Schedule</h2>
+    <p style="color:var(--muted);font-family:var(--font-display);font-size:0.88rem;margin-bottom:2rem;">
+      Full-day in-person workshop. Exact timings will be confirmed upon PerCom 2027 scheduling.
+    </p>
+    <div class="schedule-list">
+      <div class="schedule-item">
+        <div class="sch-time">Opening</div>
+        <div>
+          <div class="sch-title">Welcome &amp; Introduction</div>
+          <div class="sch-desc">Opening remarks by the organizing committee</div>
+        </div>
+      </div>
+      <div class="schedule-item">
+        <div class="sch-time">45 min</div>
+        <div>
+          <div class="sch-title">Keynote I — PQC Migration</div>
+          <div class="sch-desc">Dr. Sushmita Ruj, UNSW Sydney &nbsp;·&nbsp; Open challenges framing</div>
+        </div>
+      </div>
+      <div class="schedule-item">
+        <div class="sch-time">45 min</div>
+        <div>
+          <div class="sch-title">Keynote II — Privacy-Preserving Pervasive Computing</div>
+          <div class="sch-desc">Dr. Arpita Maitra, TCG CREST Kolkata</div>
+        </div>
+      </div>
+      <div class="schedule-item">
+        <div class="sch-time">Paper Sessions</div>
+        <div>
+          <div class="sch-title">Technical Paper Presentations</div>
+          <div class="sch-desc">8–10 accepted papers · 15 min presentation + 5 min Q&amp;A each · Grouped thematically</div>
+        </div>
+      </div>
+      <div class="schedule-item">
+        <div class="sch-time">45 min</div>
+        <div>
+          <div class="sch-title">Interactive Panel Discussion</div>
+          <div class="sch-desc">Practical migration paths, standardization gaps, and deployment trade-offs — academic, industrial &amp; regulatory perspectives</div>
+        </div>
+      </div>
+      <div class="schedule-item">
+        <div class="sch-time">Afternoon</div>
+        <div>
+          <div class="sch-title">Poster &amp; Demo Session</div>
+          <div class="sch-desc">Up to 5 posters/demos — work-in-progress and student contributions encouraged</div>
+        </div>
+      </div>
+      <div class="schedule-item">
+        <div class="sch-time">Closing</div>
+        <div>
+          <div class="sch-title">Closing Remarks</div>
+          <div class="sch-desc">Summary, future directions, and community discussion</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TPC ───────────────────────────────────────────────────────────── -->
+<section class="tpc-section" id="tpc">
+  <div class="container">
+    <div class="tag">Technical Program Committee</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Program Committee</h2>
+    <p style="color:var(--muted);font-family:var(--font-display);font-size:0.85rem;margin-bottom:1.75rem;">
+      TPC members are being contacted; final confirmations are pending workshop acceptance. Members listed alphabetically by last name.
+    </p>
+    <div class="tpc-grid">
+      <div class="tpc-item">
+        <div><div class="tpc-name">Sridhar Adepu</div><div class="tpc-inst">University of Bristol, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Shweta Agrawal</div><div class="tpc-inst">IIT Madras, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Chuadhry Mujeeb Ahmed</div><div class="tpc-inst">Newcastle University, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Ali Ismail Awad</div><div class="tpc-inst">UAE University, UAE</div></div>
+        <div class="tpc-flag">🇦🇪</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Z. Berkay Celik</div><div class="tpc-inst">Purdue University, USA</div></div>
+        <div class="tpc-flag">🇺🇸</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Ashish Choudhury</div><div class="tpc-inst">IIIT Bangalore, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Prosanta Gope</div><div class="tpc-inst">University of Sheffield, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Amir Javed</div><div class="tpc-inst">Cardiff University, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Omprakash Kaiwartya</div><div class="tpc-inst">Nottingham Trent University, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Angshuman Karmakar</div><div class="tpc-inst">IIT Kanpur, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Charalambos Konstantinou</div><div class="tpc-inst">KAUST, Saudi Arabia</div></div>
+        <div class="tpc-flag">🇸🇦</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Ajit Kumar</div><div class="tpc-inst">Soongsil University, South Korea</div></div>
+        <div class="tpc-flag">🇰🇷</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Pardeep Kumar</div><div class="tpc-inst">University of Warwick, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Subhash Lakshminarayana</div><div class="tpc-inst">University of Warwick, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Daisuke Mashima</div><div class="tpc-inst">SUTD Singapore</div></div>
+        <div class="tpc-flag">🇸🇬</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Mridul Nandi</div><div class="tpc-inst">ISI Kolkata, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Manoj M. Prabhakaran</div><div class="tpc-inst">IIT Bombay, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Sangram Ray</div><div class="tpc-inst">NIT Sikkim, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Jayasree Sengupta</div><div class="tpc-inst">IIIT Allahabad, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Vishal Sharma</div><div class="tpc-inst">Queen's University Belfast, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Virendra Singh</div><div class="tpc-inst">IIT Bombay, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Anurag Srivastava</div><div class="tpc-inst">West Virginia University, USA</div></div>
+        <div class="tpc-flag">🇺🇸</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Venkatesan Subramanian</div><div class="tpc-inst">IIIT Allahabad, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Mayank Swarnkar</div><div class="tpc-inst">IIT BHU, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Nikhil Tripathi</div><div class="tpc-inst">IIIT Sri City, India</div></div>
+        <div class="tpc-flag">🇮🇳</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Sarad Venugopalan</div><div class="tpc-inst">University of Bristol, UK</div></div>
+        <div class="tpc-flag">🇬🇧</div>
+      </div>
+      <div class="tpc-item">
+        <div><div class="tpc-name">Rohit Verma</div><div class="tpc-inst">National College of Ireland</div></div>
+        <div class="tpc-flag">🇮🇪</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SUBMISSION ────────────────────────────────────────────────────── -->
+<section class="submission-section" id="submission">
+  <div class="container">
+    <div class="tag">Paper Submission</div>
+    <div class="divider"></div>
+    <h2 class="section-title">Call for Papers</h2>
+    <div class="submission-grid">
+      <div>
+        <div class="info-block">
+          <h3>Submission Types</h3>
+          <ul>
+            <li><strong>Full papers</strong> — original research contributions (IEEE 2-column format)</li>
+            <li><strong>Short / WIP papers</strong> — work-in-progress and preliminary results</li>
+            <li><strong>Posters &amp; Demos</strong> — up to 5 accepted; ideal for student work</li>
+          </ul>
+        </div>
+        <div class="info-block">
+          <h3>Expected Scope</h3>
+          <p>
+            We expect 15–18 full paper submissions and will accept approximately 8–10 (~40% acceptance rate, consistent with workshop norms). At least 20–30 participants including authors, TPC members, and walk-in attendees from the main conference.
+          </p>
+        </div>
+        <div class="info-block">
+          <h3>Proceedings</h3>
+          <p>
+            Accepted papers will be published in the IEEE PerCom 2027 Workshop Proceedings (via IEEE Xplore). All accepted papers require at least one author registration for presentation.
+          </p>
+        </div>
+        <div class="info-block">
+          <h3>Diversity &amp; Inclusion</h3>
+          <p>
+            In line with IEEE PerCom's commitment, the organizing team actively pursues gender balance among speakers, panelists, and TPC members, and ensures geographical diversity in committee composition.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="submit-box">
+          <div>
+            <div class="tag" style="margin-bottom:0.5rem;">Submit via</div>
+            <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:0.5rem;">IEEE EDAS System</div>
+          </div>
+          <p>Submission details and the EDAS link will be available here once the workshop page is officially registered with PerCom 2027.</p>
+          <a href="#dates" class="btn btn-primary">View Deadlines</a>
+        </div>
+
+        <div style="margin-top:1.5rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
+          <h3 style="font-family:var(--font-display);font-size:0.95rem;font-weight:600;color:var(--text);margin-bottom:1rem;">Contact &amp; Publicity</h3>
+          <p style="font-family:var(--font-display);font-size:0.85rem;color:var(--muted);margin-bottom:0.75rem;">
+            For inquiries, please contact the organizing committee:
+          </p>
+          <p style="font-family:var(--font-mono);font-size:0.78rem;color:var(--quantum);">
+            ppt-pqc2027@gmail.com
+          </p>
+          <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+            <p style="font-family:var(--font-display);font-size:0.82rem;color:var(--muted);">CFP distributed via IEEE Signal Processing Society, ACM SIGMOBILE, IFIP WG lists, WikiCFP, and direct outreach to authors at PerCom, PETS, CHES, EuroS&amp;P, and IoTDI.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-brand">PPT-PQC 2027</div>
+    <div class="footer-sub">International Workshop on Privacy-Preserving Techniques &amp; Post-Quantum Cryptography for Pervasive Systems</div>
+    <ul class="footer-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#dates">Dates</a></li>
+      <li><a href="#organizers">Organizers</a></li>
+      <li><a href="#keynotes">Keynotes</a></li>
+      <li><a href="#program">Program</a></li>
+      <li><a href="#tpc">Committee</a></li>
+      <li><a href="#submission">Submit</a></li>
+      <li><a href="https://www.percom.org" target="_blank" rel="noopener">IEEE PerCom 2027 ↗</a></li>
+    </ul>
+    <div class="copyright">Co-located with IEEE PerCom 2027 · Goa, India · © 2027 PPT-PQC Workshop Organizers</div>
+  </div>
+</footer>
+
+<script>
+  // Quantum dot animation placed at circuit grid intersections
+  const qdots = document.getElementById('qdots');
+  const positions = [
+    [12,18],[25,42],[40,12],[58,30],[72,55],[85,20],
+    [18,65],[33,80],[50,70],[65,85],[80,60],[92,75],
+    [8,50],[45,50],[90,40],[60,15],[30,35],
+  ];
+  positions.forEach(([xPct, yPct], i) => {
+    const d = document.createElement('div');
+    d.className = 'q-dot';
+    d.style.left = xPct + '%';
+    d.style.top = yPct + '%';
+    d.style.animationDelay = (i * 0.27) + 's';
+    d.style.animationDuration = (3 + (i % 5) * 0.4) + 's';
+    qdots.appendChild(d);
+  });
+
+  // Smooth active nav link highlighting
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => {
+          a.style.color = a.getAttribute('href') === '#' + e.target.id
+            ? 'var(--text)' : '';
+        });
+      }
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
